@@ -6,8 +6,7 @@ The easiest way to reach me is at kaebel96@gmail.com.
 
 # Curriculum vitae
 
-[This PDF](cv.pdf) contains an up to date CV. 
-
+[This PDF](cv.pdf) contains an up to date CV.
 [Here](Arbeitszeugnis.pdf) you can find a job reference from my two years working at Landesbank Berlin.
 
 ![image](https://github.com/marckaebel/CV/assets/17997282/ddd066dd-7677-46e2-abe5-1735ca8e1e33)
