@@ -1,7 +1,7 @@
 Hello 👋
 
 I am currently looking for a new job where I can learn exciting new things. If you think I might be a good fit for your team please reach out!
-The easiest way to reach me is at kaebel96@gmail.com.
+The easiest way to reach me is though kaebel96@gmail.com.
 
 
 # Curriculum vitae
