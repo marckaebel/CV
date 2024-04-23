@@ -1,0 +1,498 @@
+\chapter{Deriving a Uniform Bound}~\label{chap:bound}
+% 
+In this chapter we will derive an upper bound on the probability of further improvement of a Kriging process.
+For that we will use two different inequalities from \cref{sec:chaining}. The first is Dudley's inequality, the second is Talagrand's inequality. In both cases we use the metric entropy of the space to find a bound on the variance of the process, then use this bound to derive a bound on the probability of further improvement.
+We limit ourselves to the case of Gaussian processes with Matérn covariances on underlying $d$-dimensional spaces $T= [0,1]^{d}$.
+
+Suppose our underlying stationary covariance function is $C$. We write $C(x,y) = C(\lvert x-y \rvert)$ for $x,y \in T$.
+Further we write the Kriging covariance as
+\( C(x,y \mid x_{1}, \dots, x_{n}) \)
+for $x,y$ and $x_{1},\dot{,x_{n}} \in T$. 
+We know from \cref{eq:kriging_predictor} that the Kriging process has a covariance matrix
+\[
+    \Sigma_{(x,y) \mid x_{1}, \dots, x_{n}} = \Sigma_{x,y} - \Sigma_{(x,y), x_{1}, \dots, x_{n}}^{T} \Sigma_{(x_{1}, \dots, x_{n}),(x_{1}, \dots, x_{n})}^{-1} \Sigma_{(x,y), x_{1, \dots, x_{n}}}.
+\]
+Writing out the matrices gives us
+\begin{align*}
+    \Sigma_{(x,y) \mid x_{1}, \dots, x_{n}} &= 
+    \begin{bmatrix}
+    C(x,x) & C(x,y)\\
+    C(x,y) & C(y,y)
+    \end{bmatrix}\\
+    &-
+    \begin{bmatrix}
+    C(x,x_{1}) & \dots & C(x,x_{n}) \\
+    C(y,x_{1}) & \dots & C(y,x_{n}) 
+    \end{bmatrix}
+    \Sigma^{-1}
+    \begin{bmatrix}
+    C(x,x_{1})  & C(y,x_{1}) \\
+    \vdots  & \vdots \\
+    C(x,x_{n})  & C(y,x_{n})  
+    \end{bmatrix},
+\end{align*}
+with \( \Sigma^{-1} \coloneqq \Sigma_{(x_{1}, \dots, x_{n}),(x_{1}, \dots, x_{n})}^{-1} = [C(x_{i}),C(x_{j})]_{1 \leq i,j \leq n}^{-1} \).
+And hence we can extract formulas for the Kriging covariance functions
+\[
+    C(x,y \mid x_{1}, \dots, x_{n}) = 
+    C(x,y) 
+    - 
+    \begin{bmatrix}
+    C(x,x_{1}) & \dots & C(x,x_{n}) 
+    \end{bmatrix}
+    \Sigma^{-1}
+    \begin{bmatrix}
+    C(y,x_{1}) \\
+    \vdots \\
+    C(y,x_{n}) 
+    \end{bmatrix}
+\]
+and 
+\[
+    C(x,x \mid x_{1}, \dots, x_{n}) = 
+    C(x,x) 
+    - 
+    \begin{bmatrix}
+    C(x,x_{1}) & \dots & C(x,x_{n}) 
+    \end{bmatrix}
+    \Sigma^{-1}
+    \begin{bmatrix}
+    C(x,x_{1}) \\
+    \vdots \\
+    C(x,x_{n}) 
+    \end{bmatrix}.
+\]
+% Later we will write
+% $c_{y}=\begin{bmatrix}C(y,x_{1}) & \dots & C(y,x_{n}) \end{bmatrix}^{T}$.
+%
+%
+\section{Preparations}
+%
+For both the Dudley and Talagrand approaches we will need to bound the covering numbers as well as the variance of the Kriging process $\{ X_{t} \}_{t \in T}$, so a bound on \( \bar{\sigma}^2 \coloneqq \sup_{t \in B} C(t,t)  = \sup_{t \in B} \E[(X_{t} - \E[X_{t}])^2] \) for certain parts of the index set $B \subseteq T$.
+We start by bounding the covering numbers.
+\begin{lemma}[Hölder continuity of Matérn covariance]
+    ~\label{lemma:matern_hoelder}
+    Let $C$ denote the Matérn covariance function with parameters \( \nu> d/2 \) and \( m > 0 \).
+    For \( 0 < \eta < 2\nu-d \) there exists  a constant \( k >0 \) such that for all \( s,t \in \mathbb{R}^{d} \) 
+    \[
+        \lvert C(s) -C(t) \rvert \leq k \lvert s-t \rvert^{\eta}.
+    \]
+\end{lemma}
+\begin{proof}
+We will follow the proof from \cite[Lemma 4.4]{ernst2020integrability}.
+Fix $\eta \in (0,1)$.
+Note that for $z,w \in \mathbb{C}$ with $\lvert z-w \rvert \leq 2$ we have
+\[
+    \lvert z-w \rvert = \lvert z-w \rvert^{1-\eta} \lvert z-w \rvert^{\eta} \leq 2^{1- \eta} \lvert z-w \rvert^{\eta}.
+\]
+Further note that we have
+\[
+     \lvert e^{- i \xi x}- e^{-i \xi y} \rvert \leq 2
+\]
+for all $x,y, \xi \in \mathbb{R}^{d}$ since $e^{-it}$ is on the unit circle for $t \in \mathbb{R}^{d}$.
+By an application of the mean value theorem to $f(t)= e^{-i \xi t}$ we have
+\[
+    \lvert e^{- i \xi x} - e^{- i \xi y} \rvert \leq \lvert \xi (x-y) \rvert.
+\]
+We can combine these facts and obtain
+\begin{align*}
+    \lvert C(s)-C(t) \rvert &\leq \frac{1}{(2 \pi)^{d}} \left| \int_{\mathbb{R}^{d}} \frac{e^{-i \xi x} - e^{- i \xi y }}{(\lvert \xi \rvert^2 + m^2)^{\nu}}  \dx[\xi]\right|\\
+    &\leq \frac{2^{1-\eta}}{(2\pi)^{d}} \lvert x-y \rvert^{\eta} \int_{R^{d}} \frac{\lvert \xi \rvert^{\eta}}{(\lvert \xi \rvert^2 + m^2)^{\nu}} \dx[\xi].
+\end{align*}
+To answer the remaining question of when this integral is finite, we bound
+\begin{align*}
+    \int_{\mathbb{R}^{d}} \frac{\lvert \xi \rvert^{\eta}}{(\lvert \xi \rvert^{2}+m^2)^{\nu}} \dx[\xi] &\leq 
+    \int_{\mathbb{R}^{d}} \frac{1}{\lvert \xi \rvert^{2\nu-\eta}} \dx[\xi].
+\end{align*}
+This integral is finite for $2\nu-\eta > d$, which proves the desired inequality.
+\end{proof}
+%
+%
+%
+\begin{proposition}[Bounding the covering numbers]
+    ~\label{prop:covering_numbers}
+    Let $C$ be a Matérn covariance function $C$ with parameters $\nu $ and $m$. Let $\{ G_{t} \}_{t \in T}$ be a Kriging process with measurements $x_{1}, \dots, x_{n}$. We again write $C(x,y) \coloneqq C(\lvert x-y \rvert)$ for the unconditioned process as well as $C(x,y \mid x_{1}, \dots, x_{n}) \coloneqq \Cov(G_{x},G_{y})$ for the Kriging process.
+    There exist constants $A$ and $\alpha$, such that the covering numbers of any subset $B \subseteq T$ for $\varepsilon>0$ with regards to the canonical distance are bounded by
+    \[
+        \mathcal{N}(B,d_{G},\varepsilon) \leq (\frac{A}{\varepsilon})^{\alpha}.
+    \] 
+\end{proposition}
+%
+%
+\begin{proof}
+We adapt a proof from \cite{ernst2020integrability} to the setting of Kriging processes.
+We will first show Hölder continuity of the canonical distance of the Kriging process. This will then help us to cover any $\varepsilon$-balls of the canonical distance with certain $\tilde{\varepsilon}$-balls of the euclidean norm. Then we can bound the covering number $\mathcal{N}(B,d_{G},\varepsilon)$ by the covering number $\mathcal{N}(B, \lvert \cdot \rvert, \tilde{\varepsilon})$, which is easy to bound as a function of the diameter of $B$. 
+%
+%
+Let us begin with proving the Hölder continuity of the canonical distance $d_{G}$. 
+As a convenience we define $c_{x}=\begin{bmatrix}C(x,x_{1}) & \dots & C(x,x_{n}) \end{bmatrix}^{T}$ for $x \in T$.
+We can write the canonical distance for $x,y \in T$ as
+\begin{align*}
+    d_{G}(x,y)^2 &= \Var(G_{x}-G_{y})\\
+    &= \Var(G_{x}) + \Var(G_{y}) - 2 \Cov(G_{x},G_{y})\\
+    &= C(x,x \mid x_{1}, \dots, x_{n}) + C(y,y \mid x_{1}, \dots, x_{n}) -2 C(x,y \mid x_{1}, \dots, x_{n})\\
+    &= C(0)- c_{x}^{T}\Sigma^{-1}c_{x}+ C(0)- c_{y}^{T} \Sigma^{-1} c_{y} 
+    - 2C(\lvert x-y \rvert)+2 c_{x}^{T} \Sigma^{-1} c_{y}\\
+    &= 2(C(0)-C(\lvert x-y \rvert)) -(c_{x}-c_{y})^{T}\Sigma^{-1}(c_{x}-c_{y}),
+\end{align*}
+where we used the fact that $\Sigma^{-1}$ is symmetric to transpose \( c_{x}^{T} \Sigma^{-1} c^{y} = c_{y}^{T} \Sigma^{-1} c^{x}  \).
+Now since $\Sigma^{-1}$ is also positive definite, \( (c_{x}-c_{y})^{T}\Sigma^{-1}(c_{x}-c_{y}) \geq 0 \)
+and the $d_{G}(x,y)^2$ can be bounded by
+\[
+    d_{G}(x,y)^2 \leq 2(C(0)-C(\lvert x-y \rvert)).
+\]
+Applying the Hölder continuity of \cref{lemma:matern_hoelder}, we have
+\[
+    d_{G}(x,y) \leq \sqrt{2k} \lvert x-y \rvert^{\eta/2}
+\]
+for $0 < \eta < 2 \nu -d$ with a constant $k$.
+
+We are ready to deal with the covering numbers.
+Due to the bound on the canonical distance by the Euclidean norm, we can cover any $\tilde{\varepsilon}$-balls of the Euclidean distance with $\varepsilon$-balls of the canonical distance.
+To be precise, we have 
+\[
+    B_{\lvert \cdot \rvert, \tilde{\varepsilon}}(x) \subseteq B_{d_{G},\varepsilon}(x)
+\]
+with \( \tilde{\varepsilon} = \left(\frac{\varepsilon^{2}}{2k}\right)^{1/\nu}  \)
+Therefore any covering of $B$ with a set of \( B_{\lvert \cdot \rvert, \tilde{\varepsilon}}(x) \) balls gives us a covering of $B$ with the same number of \(  B_{d_{G},\varepsilon}(x) \) balls. Hence 
+\[
+    \mathcal{N}(B,d_{G},\varepsilon) \leq \mathcal{N}(B,\lvert \cdot \rvert,\tilde{\varepsilon}).
+\]
+As is shown in \cite[Cor. 4.2.13]{vershynin2020high}, the latter can be bounded by 
+\[
+    \mathcal{N}(B,\lvert \cdot \rvert,\tilde{\varepsilon}) \leq \left( \frac{2 \diam(B) \sqrt{d}}{\tilde{\varepsilon}} \right)^{d},
+\]
+where $d$ is the dimension of $T$.
+Putting everything together we have
+\begin{align*}
+    \mathcal{N}(B,d_{G},\varepsilon) &\leq \left( \frac{2 \diam(B) \sqrt{d}}{\tilde{\varepsilon}} \right)^{d}\\
+    &= \left( \frac{(2 \diam(B) \sqrt{d})^{\eta} 2k}{\varepsilon^2} \right)^{\frac{d}{\eta}}\\
+    &= \left( \frac{ \sqrt{(2 \diam(B) \sqrt{d})^{\eta} 2k }}{\varepsilon} \right)^{\frac{2d}{\eta}}.
+\end{align*}
+
+Therefore the bound
+\[
+    \mathcal{N}(B,d_{G},\varepsilon) \leq (\frac{A}{\varepsilon})^{\alpha}
+\]
+holds, with $\alpha = \frac{2d}{\eta}$ and $A = \left((2 \diam(B) \sqrt{d})^{\eta} 2k\right)^{1/2}$.
+%
+%
+%
+\end{proof}
+Having derived a bound on the covering numbers, let us turn to bounding the process variance \( \bar{\sigma}^2 = \sup_{x \in B} C(x,x) \).
+\begin{lemma}
+    ~\label{lemma:kriging_variance_monotone}
+    Let $C(x,y \mid x_{1}, \dots, x_{n})$ with $n \in \mathbb{N}$ and $x,y \in T$ be the covariance function of a Kriging process with an underlying Matérn covariance and measurements $x_{1}, \dots, x_{n} \in T$.
+    Then the Kriging variance is monotonely decreasing with added measurements, i.e.
+    \[
+        C(x,x \mid x_{1}, \dots, x_{n}) \leq C(x,x \mid x_{2}, \dots x_{n}).
+    \]
+\end{lemma}
+\begin{proof}
+Before we look at the Kriging covariance functions, we will need a small matrix computation.
+We define the covariance matrix
+\[ \Sigma = 
+\begin{bmatrix}
+C(x_{1},x_{1}) & \dots & C(x_{1},x_{n}) \\
+\vdots  &  \ddots & \vdots  \\
+C(x_{n},x_{1}) & \dots  &  C(x_{n},x_{n})
+\end{bmatrix} = 
+\begin{bmatrix}
+C(x_{1},x_{1}) & \Sigma_{B} \\
+\Sigma_{B}^{T}  &  \Sigma_{C}
+\end{bmatrix} \] 
+with \( \Sigma_{C} \in \mathbb{R}^{n-1,n-1} \) and \( \Sigma_{B} \in \mathbb{R}^{n-1} \).
+Since \( C \) is a Matérn covariance function, the matrices $\Sigma$, $\Sigma_{C}$ are positive definite and $C(x_{1},x_{1}) > 0$. Hence $\Sigma$ and $\Sigma_{C}$ are invertible.
+We write
+\[
+    \Sigma^{-1}= \Lambda = \begin{bmatrix}
+    \Lambda_{A} & \Lambda_{B} \\
+    \Lambda_{B}^{T}  &  \Lambda_{C}
+    \end{bmatrix}.
+\]
+with $\Lambda_{A} \in \mathbb{R}$ and all other dimensions to match.
+Computing the blocks of this inverse matrix gives us
+\begin{align*}
+    \Lambda_{A}&= \left( C(x_{1},x_{1})- \Sigma_{B}\Sigma_{C}^{-1}\Sigma_{B}^{T} \right)^{-1}\\
+    \Lambda_{B} &= -\left( C(x_{1},x_{1})- \Sigma_{B}\Sigma_{C}^{-1}\Sigma_{B}^{T} \right)^{-1}\Sigma_{B}\Sigma_{C}^{-1}\\
+    \Lambda_{C} &= \Sigma_{C}^{-1}+\Sigma_{C}^{-1}\Sigma_{B}^{T}\left( C(x_{1},x_{1})- \Sigma_{B}\Sigma_{C}^{-1}\Sigma_{B}^{T} \right)^{-1}\Sigma_{B}\Sigma_{C}^{-1}.
+\end{align*}
+Now according to \cite[Prop. 2.2]{gallier2019schur} applied to $\Sigma$ the Schur complement \( \Sigma/ \Sigma_{C} = C(x_{1},x_{1})- \Sigma_{B} \Sigma_{C}^{-1} \Sigma_{B}^{T}\) is positive definite, therefore
+\( C(x_{1},x_{1})- \Sigma_{B} \Sigma_{C}^{-1} \Sigma_{B}^{T} > 0\).
+With this established, we can turn our attention to the Kriging covariance functions.
+By definition we have
+\[
+    C(x,x \mid x_{1}, \dots x_{n}) = C(x,x) - c_{x}^{T}\Lambda c_{x}
+\]
+and 
+\[
+    C(x,x \mid x_{2}, \dots x_{n}) = C(x,x) - \tilde{c}_{x}^{T}\Sigma_{C}^{-1} \tilde{c}_{x}
+\]
+with 
+\( c_{x} \coloneqq \begin{bmatrix} C(x,x_{1}) &  \dots & C(x,x_{n}) \end{bmatrix}^{T} \) 
+and 
+\( \tilde{c}_{x} \coloneqq \begin{bmatrix} C(x,x_{2}) &  \dots & C(x,x_{n}) \end{bmatrix}^{T} \).
+To show the desired monitonicity, it thus suffices to show 
+\[
+    c_{x}^{T}\Lambda c_{x} \geq \tilde{c}_{x}^{T} \Sigma_{C}^{-1} \tilde{c}_{x}.
+\]
+We start by multiplying out the left hand side
+\begin{align*}
+    c_{x}^{T} \Lambda c_{x} &= C(x,x_{1}) \Lambda_{A} C(x,x_{1}) + C(x,x_{1}) \Lambda_{B} \tilde{c}_{x} + \tilde{c}_{x}^{T} \Lambda_{B}^{T} C(x,x_{1}) + \tilde{c}_{x}^{T} \Lambda_{C} \tilde{c}_{x} \\
+    &= C(x,x_{1})^2 \Lambda_{A} + 2 C(x,x_{1}) \Lambda_{B} \tilde{c}_{x} + \tilde{c}_{x}^{T} \Lambda_{C} \tilde{c}_{x}.
+\end{align*}
+Plugging in from the inverse block matrix $\Lambda$ we have
+\begin{align*}
+    c_{x}^{T} \Lambda c_{x} &= \frac{1}{C(x_{1},x_{1})-\Sigma_{B}\Sigma_{C}\Sigma_{B}^{T}} ( C(x,x_{1})^2 - 2 C(x,x_{1}) \Sigma_{B} \Sigma_{C}^{-1} \tilde{c}_{x} \\
+    & +\tilde{c}_{x} \Sigma_{C}^{-1} \Sigma_{B}^{T} \Sigma_{B}\Sigma_{C}^{-1} \tilde{c}_{x} ) + \tilde{c}_{x}^{T} \Sigma_{C}^{-1} \tilde{c}_{x}\\
+    &= \frac{1}{C(x_{1},x_{1})-\Sigma_{B}\Sigma_{C}\Sigma_{B}^{T}} \left( C(x,x_{1})- \Sigma_{B} \Sigma_{C}^{-1} \tilde{c}_{x}  \right)^2 +\tilde{c}_{x}^{T} \Sigma_{C}^{-1} \tilde{c}_{x} \\
+    &\geq \tilde{c}_{x}^{T} \Sigma_{C}^{-1} \tilde{c}_{x},
+\end{align*}
+which proves the monotonicity.
+\end{proof}
+%
+%
+Now let us look specifically at the case with only one measurement $x_{1}$. We can write the covariance matrix as
+\[
+    \Sigma_{(x,y) \mid x_{1}} = \begin{bmatrix}
+    C(x,x \mid x_{1}) & C(x,y \mid x_{1}) \\
+    C(x,y \mid x_{1}) & C(x,y \mid x_{1}) 
+    \end{bmatrix}.
+\]
+As before,
+\begin{align*}
+    \Sigma_{(x,y) \mid x_{1}} &= \Sigma_{x,y} - \Sigma_{(x,y), x_{1}}^{T} \Sigma_{x_{1},x_{1}}^{-1} \Sigma_{(x,y), x_{1}}\\
+    &= \begin{bmatrix}
+    C(x,x) & C(x,y)\\
+    C(x,y) & C(y,y)
+    \end{bmatrix}
+    - \frac{1}{C(x_{1},x_{1})}
+    \begin{bmatrix}
+    C(x,x_{1})^2            & C(x,x_{1}) C(y,x_{1}) \\
+    C(x,x_{1}) C(y,x_{1})   & C(y,x_{1})^2
+    \end{bmatrix}.
+\end{align*}
+Thus for a stationary covariance function $C$, we have the formula
+\[
+    C(x,x \mid x_{1}) = C(0) - \frac{C(x,x_{1})^2}{C(0)}.
+\]
+
+\begin{lemma}[Bounding the variance]
+    ~\label{lemma:bounding_variance}
+    Take a Matérn covariance Kriging process with measurements $x_{1}, \dots, x_{n} \in T$.
+    Let $B \subseteq T$ be a set, such that for every $x \in B$ there exists a measurement point $x_{i}$ with $\lvert x-x_{i} \rvert \leq \varepsilon$.
+    The variance of the process is bounded by  
+    \[
+    C(x,x \mid x_{1}, \dots x_{n}) \leq 2k \varepsilon^{\eta} 
+    \] 
+    with the constants $k, \eta$ from \cref{lemma:matern_hoelder} for all $x \in B$
+\end{lemma}
+\begin{proof}
+To prove this bound we will combine the monotonicity of \cref{lemma:kriging_variance_monotone} with the bound of \cref{lemma:matern_hoelder}.
+For any $x \in B$ pick the closest measurement $x_{i}$. Then
+\begin{align*}
+    C(x,x \mid x_{1}, \dots x_{n}) &\leq C(x,x \mid x_{i})\\
+    &= \frac{C(0)^2-C(x,x_{i})^2}{C(0)}\\
+    &= \frac{(C(0)-C(x,x_{i}))(C(0)+C(x,x_{i}))}{C(0)}\\
+    &\leq 2 (C(0) - C(x,x_{i})).
+\end{align*}
+The last inequality holds because of the decreasing nature of the Matérn covariance $C(0)\geq C(x,x_{i})$.
+We can now apply \cref{lemma:matern_hoelder} and have
+\[
+    C(x,x \mid x_{1}, \dots x_{n}) \leq 2k \lvert x-x_{i} \rvert^{\eta}
+\]
+with constants $k, \eta$ from \cref{lemma:matern_hoelder}.
+Knowing that our measurement covers the space well enough, we can therefore uniformly bound the Kriging variance with
+\[
+    C(x,x \mid x_{1}, \dots x_{n}) \leq 2k \varepsilon^{\eta}. \qedhere
+\]
+\end{proof}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Bounds on the chance of further improvement}
+
+
+
+\begin{theorem}[Chance of further improvement with Dudley]
+Let $ \{ X_{t} \}_{t \in T}$ be a Kriging process with measurements $x_{1}, \dots, x_{n}$  and Matérn covariance $C$ with parameters $\nu,m$.
+Let $B \subseteq T$ be a set, such that for every $x \in B$ there exists a measurement point $x_{i}$ with $\lvert x-x_{i} \rvert \leq \varepsilon$ for some $\varepsilon$.
+Define $\bar{\sigma}^2= \sup_{x \in B} C(x,x \mid x_{1}, \dots, x_{n})$, as well as the constant $A$ and $\alpha$ as in \cref{prop:covering_numbers} applied to $B \subseteq T$.
+Then $\bar{\sigma}^2 \leq 2k \varepsilon^{\eta}$ and
+the probability of finding a value greater than $h \geq 12 A \sqrt{\pi} \sqrt{\alpha}$ is bounded by
+\[
+    \Prob(\sup_{t \in B} X_{t} > h) \leq 2 \exp\left( \frac{(h-12 A \sqrt{\pi} \sqrt{\alpha})^2}{4\pi^2 k \varepsilon^{\eta}} \right).
+\]
+\end{theorem}
+
+\begin{proof}
+We can apply \cref{thm:dudley_int_ineq} to $B \subseteq T$ to get
+\[
+    \E \left[ \sup_{t \in B} \lvert X_{t} \rvert \right]
+    \leq
+    24\int_{0}^{\infty} \sqrt{\log (\mathcal{N}(B,d_{X},\varepsilon) )}\dx[\varepsilon].
+\]
+The covering numbers for \( \varepsilon \geq 0 \) are bounded due \cref{prop:covering_numbers} with $\mathcal{N}(B,d_{X},\varepsilon) \leq \left( \frac{A}{\varepsilon}  \right)^{\alpha} $.
+For \( \varepsilon \geq A \) this is bounded by $ \left( \frac{A}{\varepsilon}  \right)^{\alpha} \leq 1$, which means the covering number must be $1$ and we can estimate
+\[
+    \E \left[ \sup_{t \in B} \lvert X_{t} \rvert \right]
+    \leq
+    24\int_{0}^{A} \sqrt{\log \left(\frac{A}{\varepsilon}\right)^{\alpha}}\dx[\varepsilon].
+\]
+%
+To solve this integral, we first note that
+\[
+    f(\varepsilon) = \sqrt{\log (\frac{A}{\varepsilon})^{\alpha}}
+\]
+is injective with 
+\[ f^{-1}(y) = A e^{-\frac{y^2}{\alpha}} \]
+Then we apply Fubini's theorem in order to integrate over the $y$-axis
+\begin{align*}
+    \int_{0}^{A} \sqrt{\log (\frac{A}{\varepsilon})^{\alpha}}\dx[\varepsilon] &= \int_{0}^{\infty} \int_{0}^{A} \chi_{y \leq f(\varepsilon)} \dx[\varepsilon]\dx[y]\\
+    &= \int_{0}^{\infty} \int_{0}^{A} \chi_{f^{-1}(y) \leq \varepsilon} \dx[\varepsilon]\dx[y] \\
+    &= \int_{0}^{\infty} f^{-1}(y) \dx[y]\\
+    &= \int_{0}^{\infty} A e^{-\frac{y^2}{\alpha}} \dx[y]
+\end{align*}
+where $\chi$ is the indicator function.
+This integral is a scaled Gaussian integral that can be computed by polar coordinates, leading to
+\[
+    \int_{0}^{\infty} A e^{-\frac{y^2}{\alpha}} \dx[y] = A \frac{\sqrt{\pi} \sqrt{\alpha}}{2}.
+\]
+Now we can simplify the estimate to
+\[
+    \E \left[ \sup_{t \in B} \lvert X_{t} \rvert \right]
+    \leq 12 A \sqrt{\pi} \sqrt{\alpha}.
+\]
+%
+%
+Next we will us use the concentration inequality from \cref{prop:concentration_ineq}.
+The first consideration is the seperability of $\{ X_{t} \}_{t \in B}$. Here we can use the fact, that the seperability the process is equivalent to the seperability of $(B,d_{X})$. Which is given due to the seperability of $B \subseteq T$ with the Euclidean norm, as well as the Hölder continuity of the canonical distance
+\(
+    d_{X}(x,y) \leq  2k  \lvert x-y \rvert^{\eta}.
+\)
+The second consideration is the centeredness. If $\{ X_{t} \}_{t \in B}$ is not centered, we can subtract the Kriging mean function $\mu_{t}$ and work with $\{ X_{t}-\mu_{t} \}_{t \in T}$ instead.
+Due to \cref{lemma:bounding_variance} the variance $\bar{\sigma}^2$ is finite and bounded by $\bar{\sigma}^2 \leq 2k \varepsilon^{\eta}$.
+Therefore by the concentration inequality
+\[
+    \Prob\left( \left\lvert\sup_{t \in B} \lvert X_{t}\rvert - \E \left[\sup_{t \in B} \lvert X_{t}\rvert\right]  \right\rvert > u \right)
+    \leq 2 e^{-(u^2/2\pi^2\bar{\sigma}^2)}.
+\]
+for $u > 0$.
+Further
+\[
+    \Prob\left( \sup_{t \in B} X_{t} > u + \E\left[ \sup_{t \in B} \lvert X_{t} \rvert \right] \right) \leq \Prob \left(  \left| \sup_{t \in B} \lvert X_{t} \rvert - \E \left[ \sup_{t \in B} \lvert  X_{t} \rvert \right] \right|> u \right).
+\]
+We can substitute $h = u + \E \left[ \sup_{t \in B} \lvert  X_{t} \rvert \right] $.
+Putting the two inequalites together
+\[
+    \Prob(\sup_{t \in B} X_{t} > h) \leq 2 \exp\left( \frac{(h-\E\left[ \sup_{t \in B} \lvert X_{t} \rvert \right] )^2}{2 \pi^2 \bar{\sigma}^2} \right) \leq 2 \exp\left( \frac{(h-12 A \sqrt{\pi} \sqrt{\alpha})^2}{2\pi^2 \bar{\sigma}^2} \right)
+\]
+holds for $h \geq 12 A \sqrt{\pi} \sqrt{\alpha}$.
+Plugging in the estimate for $\bar{\sigma}^2$ proves the desired inequality.
+\end{proof}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+\begin{theorem}[Chance of further improvement with Talagrand]
+    Let $ \{ X_{t} \}_{t \in T}$ be a Kriging process with measurements $x_{1}, \dots, x_{n}$  and Matérn covariance $C$ with parameters $\nu,m$.
+    Let $B \subseteq T$ be a set, such that for every $x \in B$ there exists a measurement point $x_{i}$ with $\lvert x-x_{i} \rvert \leq \varepsilon$ for some $\varepsilon$.
+    Define $\bar{\sigma}^2= \sup_{x \in B} C(x,x \mid x_{1}, \dots, x_{n})$, as well as the constant $A$ and $\alpha$ as in \cref{prop:covering_numbers}.
+    Further choose \( \tilde{A} > \max \{ \sqrt{ 2k \varepsilon^{\eta}}, A \} \).
+    Then the probability of finding a value greater than $u$ is bounded by
+    \[
+        \Prob \left( \sup_{t \in B} X_{t} \geq u \right)
+        \leq  \left(\frac{K A u}{\sqrt{\alpha} \sigma^2} \right)^{\alpha} e^{\frac{-u^2}{2\sigma^2}}
+    \]
+    for $u \geq \bar{\sigma}(1+\sqrt{\alpha})$.
+\end{theorem}
+\begin{proof}
+    We will check all the neccessary conditions needed to apply \cref{thm:talagrand}.
+    By \cref{lemma:bounding_variance} the variance of the process is bounded with $\sigma^2 \leq 2k \delta^{\eta}$. By the choice of $\tilde{A}$ we therefore have $\tilde{A} > \sigma$.
+    Further we have the bound on the covering numbers
+    \[
+        \mathcal{N}(B,d_{X},\varepsilon) \leq \left( \frac{A}{\varepsilon} \right)^{\alpha} \leq \left( \frac{\tilde{A}}{\varepsilon} \right)^{\alpha}
+    \]
+    from \cref{prop:covering_numbers}.
+    We can now apply \cref{lemma:bounding_variance}, which gives us 
+    \[
+        \Prob \left( \sup_{t \in B} X_{t} \geq u \right)
+        \leq  \left(\frac{K A u}{\sqrt{\alpha} \sigma^2} \right)^{\alpha} e^{\frac{-u^2}{2\sigma^2}},
+    \]
+    for $u \geq \bar{\sigma}(1+\sqrt{\alpha})$
+\end{proof}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Algorithm}
+The following is an example of how this bound could be implemented in an algorithm.
+We start like regular Bayesian optimization, by finding an optimal measurement point according to some acquisition function.
+But in between taking measurements we use the bound on the chance of further improvement to check, if there are areas where further improvement is unlikely.
+We then prune away these areas and only search in the remaining parts. 
+If calculating these bounds is numerically cheaper than searching in the full area, then there is a performance gain in comparison to regular Bayesian optimization defined in \cref{alg:bayes_opt}.
+%
+In each iteration we perform a measurement and try to prune away parts of the search space $T$, where improvement is no longer likely. This can be done recursively for finer and finer subsets. The variables $d_{i}$ control the depth of search after each measurement point. The value describes how many times we cut $T$ in half when looking for areas to rule out. One could set $d_{i}=0$ periodically if taking multiple measurements in a row is desired. This depends on the cost of measurement in comparison to the cost of computing the bounds on the chance of improvement.
+To illustrate the procedure, we look at an example.
+Take $T=[0,1]^{d}$. We can cut into $[0,0.5] \times [0,1]^{d}$ and $ [0.5,1] \times [0,1]^{d-1}$ on the first level, then $[0,0.5] \times [0,0.5] \times [0,1]^{d-2} $ and so on until we have exhausted all the dimensions and arrive at blocks like form $[0,0.5]^{d}$, spread around $T$. Then we can start by cutting the first components in half again and repeat.
+% We will also have to calculate or upper bound $\max_{x \in T_{k}} d(x, \{ x_{1}, \dots, x_{n} \})$, which is the biggest distance of any point to the next measurement.
+%
+%
+\algnewcommand{\Inputs}[1]{%
+  \State \textbf{Inputs:}
+  \Statex \hspace*{\algorithmicindent}\parbox[t]{.8\linewidth}{\raggedright #1}
+}
+\algnewcommand{\Initialize}[1]{%
+  \State \textbf{Initialize:}
+  \Statex \hspace*{\algorithmicindent}\parbox[t]{.8\linewidth}{\raggedright #1}
+}
+\begin{algorithm}[H]
+    \caption{Branching augmented global optimization}\label{alg:proposed_alg_2}
+    \begin{algorithmic}[1]
+        \Inputs{
+            surrogate model $\{ G_{t} \}_{t \in T}$\\
+            acquisition function $\alpha$\\ 
+            probability threshold $\gamma$\\
+            pruning search depths $d_{i}$\\
+            a function $f$
+            a set $T$
+            a scheme for cutting $T$ into half spaces recursively
+        }  
+        \Initialize{
+            $T_{pr} \gets \emptyset$\\
+            $\mathcal{D}_{0} \gets \emptyset$\\
+            $g^{*} \gets - \infty$
+        }
+        \For {$i=1,2,\dots$}
+        \State select next point
+        $
+            x_{i} \gets \argmax_{x \in T \setminus T_{pr} } \alpha(x,\mathcal{D}_{i-1})
+        $
+        \State evaluate $f(x_{i})$
+        \If{$f(x_{i})> g^{*}$}
+        \State $g^{*} \gets f(x_{i})$
+        \EndIf
+
+        \State extend the data set $\mathcal{D}_{i} \gets \mathcal{D}_{i-1} \cup \{ (x_{i}, f(x_{i})) \}$
+        \State update the surrogate model $\{ G_{t} \}_{t \in T}$
+        \For {$j=0,\dots, d_{i}$}
+        \For{all depth $j$ half spaces $T_{k}$ of $T$ with $T_{k} \cap T_{pr} = \emptyset$}
+        \If{$\Prob\left( \sup_{t \in T_{k}} G_{t}> g^{*} \right) <  \frac{\operatorname{vol}(T_{k})}{\operatorname{vol}(T)} \gamma$}
+        \State $T_{pr} \gets T_{pr} \cup T_{k}$
+        \EndIf
+        \EndFor
+        \EndFor
+        \If{$T_{pr} = T$}
+        \State terminate algorithm early
+        \EndIf
+        \EndFor
+    \end{algorithmic}
+\end{algorithm} 
+
+

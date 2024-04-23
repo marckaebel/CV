@@ -1,0 +1,287 @@
+%---------------------------------------Packages---------------------------------------
+
+
+\usepackage[paper=a4paper]{geometry} %,left=32mm,right=32mm,top=30mm,bottom=30mm
+\usepackage[ngerman,english]{babel}
+\usepackage{fancyhdr}
+\usepackage[utf8]{inputenc}
+% \usepackage{lmodern} % Font normal
+% \usepackage{tgpagella} % Font palantino
+\usepackage[T1]{fontenc}
+\usepackage[rgb,dvipsnames]{xcolor}
+\usepackage{microtype}
+\usepackage[all]{nowidow}
+\usepackage{graphicx}
+\usepackage{float}
+%\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage[shortlabels]{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{mathtools}
+\usepackage{wrapfig}
+\usepackage[titletoc]{appendix}
+\usepackage[nonewpage,quiet]{imakeidx}
+\usepackage[linktoc=all]{hyperref}
+\usepackage{tocloft}
+\usepackage{titlesec}
+\usepackage[labelsep=period]{caption}
+\usepackage{subcaption}
+\usepackage[style=numeric,maxnames=3,sortcites=true,doi=false,isbn=false,eprint=false,url=false]{biblatex}
+\usepackage[nameinlink,capitalize]{cleveref}
+\usepackage{csquotes}
+\usepackage{thmtools} 
+\usepackage{xurl}
+\usepackage{grffile}
+\usepackage{mdframed} %vorher war [framemethod=TikZ]
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+% \usepackage{printlen}
+% \usepackage{layouts} # only used to get \textwidth
+
+
+
+%---------------------------------------Diverse Befehle---------------------------------------
+
+
+\addbibresource{Bibliography.bib}
+\graphicspath{{./figures/}}
+\setlist{nosep} %enumitem: remove vertical spaces around lists
+
+
+\DeclareCaptionLabelSeparator{bar}{\,|\, }
+\captionsetup{font=small,labelfont=bf, labelsep=bar, width=.9\linewidth,belowskip=-7pt}
+
+
+\numberwithin{equation}{chapter} %gleichungen in kapiteln nummerieren
+\allowdisplaybreaks % align umgebungen umbrechen
+\setlength{\oddsidemargin}{35pt} 
+\setlength{\evensidemargin}{35pt}%macht, dass gerade und ungerade seiten gleiche margins haben
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{external} 
+\tikzexternalize
+
+\indexsetup{level=\section,noclearpage,firstpagestyle=fancy}
+\makeindex[columns=2, title=Alphabetical Index]
+
+
+\setcounter{topnumber}{1} %max number of floats at the top of a page
+% \makeindex[columns=3, title=Alphabetical Index]
+
+
+% % Diese Befehle ändern die Farben der Seitennummern
+% % im Inhaltsverzeichnis. Möglich durch \usepackage{tocloft}
+% \makeatletter
+% % \definecolor{bluelinkcolor}{RGB}{35, 60, 138}
+% \renewcommand{\cftchappagefont}{\bfseries\color{BlueViolet}}
+% \renewcommand{\cftsecpagefont}{\color{BlueViolet}}
+% \let\cftsubsecpagefont\cftsecpagefont % \renewcommand{\cftsubsecpagefont}{\HyColor@HyperrefColor{red}\@linkcolor}
+% \makeatother
+
+
+
+
+%---------------------------------------Cleverref---------------------------------------
+
+
+
+\crefname{chapter}{Chapter}{Chapters}
+\crefname{section}{Section}{Sections}
+\crefname{subsection}{Subsection}{Subsections}
+\crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{figure}{Figure}{Figures}
+\crefname{table}{Table}{Tables}
+\crefname{equation}{Equation}{Equations}
+\crefname{problem}{Problem}{Problems}
+\crefname{appchap}{Appendix}{Appendices}
+\crefname{appsec}{Appendix}{Appendices}
+
+
+
+%---------------------------------------PDF Einstellungen---------------------------------------
+
+
+
+\hypersetup{
+  pdftitle    = {Bachelorarbeit},
+  pdfsubject  = {Chance of Further Improvement in Bayesian Optimization},
+  pdfauthor   = {Marc Philip Kaebel},
+  colorlinks  = false,
+  pdfborder   = {0 0 0}
+}
+
+
+
+%---------------------------------------Clickable Chapter Names leading to TOC------------------
+
+
+
+\AtBeginDocument{
+  \let\oldchapter\chapter
+  \RenewDocumentCommand{\chapter}{s o m}{%
+    \clearpage
+    \IfBooleanTF{#1}
+    {\oldchapter*{\hyperref[toc]{#3}}}% \chapter*[..]{...}
+    {\IfValueTF{#2}
+      {\oldchapter[#2]{\hyperref[toc]{#3}}}% \chapter[..]{...}
+      {\oldchapter[#3]{\hyperref[toc]{#3}}}% \chapter{...}
+      \label{chapter-\thechapter}% \label this chapter
+    }%
+  }
+}
+
+%---------------------------------------Fancy Pagestyle Setup-----------------------------------
+
+\setlength{\headheight}{15pt} %fancyhdr
+
+\fancypagestyle{plain}{  % makes the first pages of chapters have page numbers that are at the bottom on the sides
+\fancyhf{}
+\fancyfoot[LE,RO]{\textbf{\thepage}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+
+
+
+
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+%\renewcommand{\sectionmark}[1]{\markright{#1}}
+\fancyhf{}
+%\fancyhead[LE,RO]{\thepage}
+\fancyhead[LE]{\nouppercase{\scshape\textbf{\thepage}\,|\, \leftmark}}
+\fancyhead[RO]{\nouppercase{\scshape\rightmark\, |\,\textbf{\thepage}}}
+\renewcommand{\headrulewidth}{0pt}
+
+
+
+%---------------------------------------Chapter and Section Style-------------------------------
+
+
+
+
+\titleformat{\subsection}
+{\normalfont\itshape\large}
+{\thesection}{0.5em}{\normalfont\normalsize\itshape}
+% {\thesection\,|\, }{0.5em}{}
+
+
+
+
+\titleformat{\section}
+{\normalfont\bfseries\large}
+{\thesection}{0.5em}{\normalfont\normalsize\scshape}
+% {\thesection\,|\, }{0.5em}{}
+
+
+
+\titleformat{\chapter}[display]
+  {\normalfont}{\large\scshape\chaptertitlename\ \thechapter}{0pt}{\LARGE\bfseries}
+% \titlespacing*{\chapter}s
+%   {0pt}{65pt}{40pt}
+
+
+
+%---------------------------------------Thmtools---------------------------------------
+
+
+
+\let\proof\relax
+\let\endproof\relax
+
+
+
+\declaretheoremstyle[
+spaceabove=3pt, 
+spacebelow=6pt,
+headfont=\normalfont\bfseries,
+notefont=\mdseries, 
+notebraces={(}{)},
+bodyfont=\normalfont]{standardthm}
+
+\declaretheoremstyle[
+spaceabove=3pt, 
+spacebelow=6pt,
+headfont=\normalfont\bfseries,%\scshape,
+notefont=\normalfont\mdseries, 
+notebraces={(}{)},
+bodyfont=\normalfont,
+postheadspace=1em]{standarddef}
+
+\declaretheoremstyle[
+spaceabove=0pt, 
+spacebelow=0pt,
+headfont=\normalfont\bfseries,
+notefont=\mdseries, 
+notebraces={(}{)},
+bodyfont=\normalfont,
+postheadspace=1em]{standardrem}
+
+\declaretheoremstyle[
+spaceabove=0pt, 
+spacebelow=0pt,
+headfont=\normalfont\bfseries,
+bodyfont=\normalfont,
+postheadspace=1em,
+qed=\qedsymbol%$\blacksquare$
+]{standardproof}
+
+
+
+\declaretheorem[
+style=standardthm,
+refname={Theorem,Theorems},
+Refname={Theorem,Theorems},
+numberwithin=chapter]{theorem}
+
+\declaretheorem[
+style=standardthm,
+sibling=theorem,
+refname={Proposition,Propositions},
+Refname={Proposition,Propositions}]{proposition}
+
+\declaretheorem[
+style=standardthm,
+sibling=theorem,
+refname={Lemma,Lemmas},
+Refname={Lemma,Lemmas}]{lemma}
+
+\declaretheorem[
+style=standardthm,
+sibling=theorem,
+refname={Corollary,Corollaries},
+Refname={Corollary,Corollaries}]{corollary}
+
+
+
+\declaretheorem[
+style=standarddef,
+sibling=theorem,
+refname={Definition,Definitions},
+Refname={Definition,Definitions}]{definition}
+
+\declaretheorem[
+style=standarddef,
+sibling=theorem,
+refname={Example,Examples},
+Refname={Example,Examples}]{example}
+
+\declaretheorem[
+style=standardrem,
+sibling=theorem,
+refname={Remark,Remarks},
+Refname={Remark,Remarks}]{remark}
+
+
+
+\declaretheorem[
+style=standardproof,
+unnumbered,
+refname={Proof,Proofs},
+Refname={Proof,Proofs}]{proof}
+
+
+
+%------------------------------------------------------------------------------

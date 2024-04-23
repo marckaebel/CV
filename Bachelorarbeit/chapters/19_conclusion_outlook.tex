@@ -1,0 +1,26 @@
+\chapter{Conclusion and Outlook}~\label{chap:conclusion_outlook}
+%
+%
+\section{Conclusion}
+In this thesis we derived a chaining based bound on the chance of further improvement during Bayesian optimization. 
+We suggested two approaches, one based on Dudley's inequality and a concentration inequality. And one based on Talagrand's inequality.
+We proposed an algorithm to implemement this a check of this this bound, in order to improve computation times of Bayesian optimization by ruling out areas, where further improvement is unlikely.
+%
+%
+\section{Outlook}
+In future work one could implement \cref{alg:proposed_alg_2} and check its numerical performance, with emphasis on smoothness parameters and dimensionality of the data. One could compare how well the two different approaches with Dudley's and with Talagrand's inequality respectively rule out areas, where further improvement is unlikely.
+Another possible direction of research is to adapt this technique for other schemes, like gradient enhanced kriging.
+% \begin{algorithm}
+%     \caption{Proposed global optimization algorithm}\label{alg:proposed_alg}
+%     \begin{algorithmic}[1]
+%         \For {$n=1,2,\dots$}
+%         \State select new point $x_{n}$ to evaluate by maximizing the acquisition function $\alpha$
+%         \[
+%             x_{n} = \argmax_{x \in \mathcal{X}} \alpha(x,\mathcal{D}_{n-1})
+%         \]
+%         \State evaluate $f(x_{n})$
+%         \State extend the data set $\mathcal{D}_{n} = \mathcal{D}_{n-1} \cup \{ (x_{n}, f(x_{n})) \}$
+%         \State update the surrogate model \textcolor{red}{I still haven't thought this algorithm through}
+%         \EndFor
+%     \end{algorithmic}
+% \end{algorithm} 

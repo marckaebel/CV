@@ -1,0 +1,84 @@
+\documentclass[12pt,openany]{book}
+\input{preamble_book.tex}
+\input{commands.tex}
+
+
+
+\title{Bachelor Thesis}
+\author{Marc Philip Kaebel}
+\date{\today}
+
+
+
+\begin{document}
+
+
+
+\frontmatter
+
+
+\input{chapters/00_titlepage.tex}
+\pagestyle{empty}
+% \hfill\newpage
+
+
+\setcounter{page}{1}
+\input{chapters/01_versicherung.tex}
+\input{chapters/02_kurzzusammenfassung.tex}
+
+
+
+\newpage
+\phantomsection
+\tableofcontents\label{toc}
+\addtocontents{toc}{\protect\thispagestyle{empty}}
+
+% \mainmatter
+
+\makeatletter % this removes the empty page after the first chapter (which is created because first pages always are on the right side usually)
+\@twosidefalse
+\mainmatter
+\@twosidetrue
+\makeatother
+
+\pagestyle{fancy}
+
+
+
+
+
+
+\input{chapters/10_introduction.tex}
+\input{chapters/11_probability_theory.tex}
+\input{chapters/12_kriging_bayes.tex}
+\input{chapters/13_deriving_a_bound.tex}
+\input{chapters/19_conclusion_outlook.tex}
+
+
+
+
+
+%\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
+\printbibliography
+
+
+
+\appendix
+
+
+\crefalias{chapter}{appchap} % Making sure that cref finds Appendix A.1 instead of Chapter A
+\crefalias{section}{appsec}
+\renewcommand{\chaptermark}[1]{\markboth{Appendix}{\thesection~~#1}} % Header behavior: print Appendix in front of the chapter name in the appendix
+% \renewcommand{\sectionmark}[1]{\markboth{Appendix}{Appendix \thesection~~#1}} 
+
+
+\input{chapters/99_appendix.tex}
+
+
+
+
+
+\end{document}

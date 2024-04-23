@@ -1,0 +1,316 @@
+\chapter{Gaussian Process Regression and Bayesian Optimization}~\label{chap:kriging_bayes}
+% 
+This chapter is focused on Gaussian process regression, as well as Bayesian optimization. 
+Gaussian process regression is a method for interpolating data points with a Gaussian process governed by prior covariances. 
+It originated in geostatistics, where it was used to predict the distribution of ore. It is also known as Kriging, named after the South African mining engineer D. G. Krige~\cite{krige1951statistical}, who developed the first ideas in the 1950s.
+These were then picked up and worked on further in the seminal works of Georges Matheron in the 1960s~\cite{matheron1963principles}, who coined the term Kriging.
+\cref{fig:random_field_regression} shows a Gaussian random field regression with a Matérn kernel.
+
+Bayesian optimization is a method for minimizing functions that are expensive to evaluate. 
+The method consists of two steps that are performed sequentially. 
+First, a measurement point is picked by maximizing a utility function, making a trade-off between exploring areas of high uncertainty and exploiting areas of low predicted values.
+Secondly, a Gaussian process regression is computed based on the previous measurements and the random structure of the problem. 
+This Gaussian process regression is then used to pick the next measurement point.
+The two steps are repeated until we have either reached a global minimum or a stopping criterion is met.
+Bayesian optimization gets used in many fields, including but not limited to machine learning hyperparamter tuning\cite{wu2019hyperparameter}, molecule design\cite{korovina2020chembo,griffiths2020constrained} and climate model calibration\cite{ma2022using}.
+As mentioned in the introduction, we will only work with Gaussian processes from here on. Gaussian processes are expressive enough to be useful and simple enough to be worked with.
+They have a number of unique features that make them nice to work with.
+Namely, Gaussian processes are closed under addition, Bayesian conditioning (measurements) and linear operations. 
+That means if $X$ is a Gaussian process with mean $m(\cdot)$ and covariance $C(\cdot,\cdot)$, $\mathcal{L}$ is a linear operator, then $\mathcal{L} \circ X$ is a Gaussian process with mean $\mathcal{L} \circ m(\cdot)$ and covariance $\mathcal{L}^2 \circ C(\cdot,\cdot)$. In particular multiplications with matrices, differentiation and integration all return Gaussian processes.
+One noteworthy drawback when modeling with Gaussian processes is their conditional homoskedasticity. That is, the variance at a point \( t \in T \), \( \Var(X_{t} \mid X )  \) does not depend on $X$~\cite[p. 110]{cressie1993statistics}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Kriging
+\section{Kriging}~\label{sec:kriging}\index{Kriging}
+% 
+% 
+% 
+Let \( \{ X_{t} \}_{t \in T} \) be a second order Gaussian random field.
+And let \( t_{1}, \dots, t_{n} \in T \) be measurement points. 
+Kriging predicts the value of the random field at a points \( t \in T \) as a weighted average of the measurements \( X_{t_{1}}, \dots, X_{t_{n}} \), so
+\[
+    \hat{X}_{t} = \sum_{i=1}^{n} w_{i} X_{t_{i}}+c,
+\]
+where \( w_{i} ,c\) are certain weights, chosen, so that the linear predictor is unbiased and minimizes the mean squared error.
+In this section we will deal with simple Kriging. Its model assumptions are, that the mean $\mu$ is known and constant and that the random field is second order stationary with known covariance function \( C \).
+Other variants of Kriging, like ordinary Kriging and universal Kriging~\cite{cressie1993statistics}, deal with situations, where these assumptions are not met.
+\begin{figure}[b]
+    \centering
+    \input{figures/random_field_regressiom.pgf}
+    \caption{Gaussian random field regression: Sampled points, regression, ground truth and color bar.}
+    \label{fig:random_field_regression}
+\end{figure}
+
+First we deal with the unbiasedness condition.
+We can write the linear predictor as
+\[
+    \hat{X}_{t} = w^{T} y + c
+\]
+with \( w = [w_{1}, \dots, w_{n}] \) and \( y = [X_{t_{1}}, \dots, X_{t_{n}}] \).
+If we require \( \hat{X_{t}} \) to be unbiased,
+\[
+    \mu = \E[\hat{X}_{t}] = \E[c + w^{T} y] = c + w^{T} (\mathbf{1}_{n} \mu).
+\]
+Here we denote by \( \mathbf{1}_{n} \) the vector of length \( n \) with all entries equal to one.
+The last equality is due to the observations $y$ being distributed with mean $\mu$.
+Thus the constant term must be
+\[
+    c = \mu - w^{T} (\mathbf{1}_{n} \mu)
+\]
+and the unbiased predictor is
+\[
+    \hat{X}_{t} = \mu + w^{T} (y- (\mathbf{1}_{n} \mu)).
+\]
+
+Before we deal with the minimization of the mean squared error, we will introduce some notation.
+Let us define the vector
+\[
+    \begin{bmatrix}
+    X_{t}\\
+    \hat{X}_{M}
+    \end{bmatrix},
+\]
+where $X_{t}$ is the random variable obtained from $X$ at a fixed $t \in T$ and $\hat{X}_{M}$ is the random vector containing measurements \( [X_{t_{1}}, \dots, X_{t_{n}}] \) at points \(M=  \{ t_{1}, \dots, t_{n} \} \subset T \).
+This vector is Gaussian with mean 
+\[
+    \mu = \begin{bmatrix}
+    \mu_{t}\\
+    \mu_{M}
+    \end{bmatrix}
+\]
+and covariance
+\[
+    \Sigma = \begin{bmatrix}
+    \Sigma_{t,t} & \Sigma_{t, M}\\
+    \Sigma_{M, t} & \Sigma_{M,M}
+    \end{bmatrix},
+\]
+where \( \mu_{M} \coloneqq [\mu_{t_{1}}, \dots , \mu_{t_{n}}]^{T} \) 
+and the covariance block matrices are given by
+\begin{align*}
+    \Sigma_{t,t} &= C(t,t)\\
+    \Sigma_{t, M} &= [C(t,t_{i})]_{1 \leq i \leq n}\\
+    \Sigma_{M, t} &= (\Sigma_{t, M})^{T}\\
+    \Sigma_{M,M} &= [C(t_{i},t_{j})]_{1 \leq i,j \leq n}.
+\end{align*}
+Now we come to the minimization of the mean squared error.
+We can reformulate it as 
+\begin{align*}
+    \operatorname{MSE}(\hat{X}_{t}) &= \E\left[ \left( \hat{X}_{t} - X_{t} \right)^{2} \right]\\
+    &= \E\left[ (w^{T}(y-\mu)+(\mu-X_{t}))^2 \right]\\
+    &= w^{T} \E[(y-\mu)(y-\mu)^{T}] w + \E[(\mu-X_{t})^2] - 2 \E[w^{T}(y-\mu)(X_{t}-\mu)]\\ 
+    &= w^{T} \Sigma_{M, M} w + \Sigma_{t, t} -2 w^{T} \Sigma_{M,t}.
+\end{align*}
+Differentiating with respect to $w$ and setting the gradient to zero yields
+\begin{align*}
+    0 &= \frac{\partial}{\partial w} \left( w^{T}\Sigma_{M, M} w + \Sigma_{t, t} -2 w^{T}\Sigma_{M,t} \right) \\
+    &= 2\Sigma_{M,M} w - 2 \Sigma_{M,t},
+\end{align*}
+which is equivalent to
+\[
+    \Sigma_{M,M} w = \Sigma_{M,t}.
+\]
+From this we derive the optimal weights \( w = \Sigma_{M,M}^{-1} \Sigma_{M,t} \).
+And thus we have the Kriging predictor
+\[
+    \hat{X}_{t} = \mu + \Sigma_{t,M} \Sigma_{M,M}^{-1} (y-(\mathbf{1}_{n} \mu)),
+\]
+as well as the resulting mean squared error
+\[
+    \operatorname{MSE}(\hat{X}_{t}) = \Sigma_{t,t} - \Sigma_{t,M} \Sigma_{M,M}^{-1} \Sigma_{M,t}.
+\]
+
+Hence, the Kriging predictor is distributed akin to the conditional distribution of a Gaussian random vector, given the measurements, as described in \cref{lem:conditioned_gaussian_random_vector}.
+That is,
+\begin{equation}\label{eq:kriging_predictor}
+    \hat{X}_{t} \sim \mathcal{N}\left(\mu+\Sigma_{t,M}\Sigma_{M,M}^{-1}(y-(\mathbf{1}_{n}\mu)),\,\, \Sigma_{t,t} - \Sigma_{t,M} \Sigma_{M,M}^{-1} \Sigma_{M,t} \right).
+\end{equation}
+
+
+
+
+
+% Then we know from \cref{lem:conditioned_gaussian_random_vector}, that the conditional distribution of \( X_{t^{*}} \) given \( \hat{X}_{M} \) is
+% \[
+%     X_{t^{*}} \mid \hat{X}_{M} \sim \mathcal{N}\left(\mu_{t^{*}} + \Sigma_{t^{*}, M} \Sigma_{M,M}^{-1} (\hat{X}_{M} - \mu_{M}),\,\, \Sigma_{t^{*},t^{*}} - \Sigma_{t^{*}, M} \Sigma_{M,M}^{-1} \Sigma_{M,t^{*}}\right).
+% \]
+As we have seen, Kriging provides the \textit{best linear unbiased predictor} (BLUP)\index{Kriging! BLUP property}.  
+It is also an exact interpolator~\cite[p.359]{cressie1993statistics}, meaning that the predictor is exact at the measurement points.
+One special property of Gaussian processes is, that the optimal predictor and optimal linear predictor are the same under squared error loss~\cite[p.110]{cressie1993statistics}.
+% Without going into further detail, an alternative path to deriving Gaussian process regression is to start with a Bayesian linear regression and utilize a kernel trick as is done in~\cite[p. 156]{shahriari2015taking}.
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Bayesian Optimization
+\section{Bayesian Optimization}~\label{sec:bayes_opt}\index{Bayesian Optimization}
+% \begin{figure}[ht]
+%     \centering
+%     \input{figures/samples_drawn_different_Matern.pgf}
+%     \caption{Samples drawn from Matérn \textcolor{red}{this can possibly be left out  because I have a similar one already in chapter 2} }
+% \end{figure}
+% 
+% 
+% 
+% 
+Bayesian optimization has its roots in the 60s and 70s with the works of Kushner~\cite{kushner1962versatile} and Mockus~\cite{vzilinskas1972bayes}. 
+But due to practical considerations, like the computational cost of inverting ill-conditioned \( n \times n \) covariance matrices~\cite{zhigljavsky2021bayesian}, it was not until the 90s that it gained popularity~\cite{jones1998efficient}.
+As mentioned in the introduction of the chapter, Bayesian optimization is a minimization scheme that consists of two key ingredients.
+% 
+\begin{algorithm}
+    \caption{Bayesian Optimization}\label{alg:bayes_opt}
+    \index{Bayesian Optimization!algorithm}
+    \begin{algorithmic}[1]
+        \For {$n=1,2,\dots$}
+        \State select new point $x_{n}$ to evaluate by maximizing the acquisition function $\alpha$
+        \[
+            x_{n} = \argmax_{x \in \mathcal{X}} \alpha(x,\mathcal{D}_{n-1})
+        \]
+        \State evaluate $f(x_{n})$
+        \State extend the data set $\mathcal{D}_{n} = \mathcal{D}_{n-1} \cup \{ (x_{n}, f(x_{n})) \}$
+        \State update the surrogate model
+        \EndFor
+    \end{algorithmic}
+\end{algorithm} 
+% 
+% 
+% 
+% 
+The first is a probabilistic surrogate model, which captures our beliefs about the behavior of the unknown objective function and an observation model that describes the data generation mechanism. 
+The second is a utility function, that describes, how optimal a sequence of observations is.
+The expected utility is then maximized to select an optimal sequence of observations, while after each observation the surrogate model is again updated.
+Computing the expected utility is often intractable, so heuristics are used to approximate it~\cite{shahriari2015taking}. These heuristics are often called \textit{acquisition functions}\index{Bayesian Optimization!acquisition function}.
+This can be formalized as in \cref{alg:bayes_opt}.
+The objective function $f$ is usually expensive to evaluate and does not necessarily have a closed form expression. 
+It is often nonconvex and multimodal. 
+If gradient information is available, this can be incorporated into the algorithm~\cite[Sec. 4.2.1]{lizotte2008practical}, but is beyond the scope of this thesis.
+% The presented methods are all one-step optimal. 
+% Another approach, which we will not go into further detail on, is multi-step optimality~\cite{frazier2009knowledge}.
+
+With the previous section in mind, we already have a structure for a surrogate model, so let us look at the acquisition functions.
+\begin{figure}[t]
+    \centering
+    \input{figures/bayes_opt_ei.pgf}
+    \caption{Bayesian Optimization with Expected Improvement.}
+    \label{fig:bayes_opt_ei}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+We are looking to build a function $\alpha$, such that we can choose the next evaluation point with
+\[
+    x_{n+1} = \argmax_{x \in T} \alpha(x,\mathcal{D}_{n}),
+\]
+where $n$ is the number of previous observations, $\mathcal{D}_{n}$ is the data gained from the previous observations and $T$ is the space over which we optimize.
+For a Gaussian process surrogate model $\{ G_{x} \}_{x \in T}$ we define the improvement at $x \in T$ as
+\[
+    I(x) = \max(G_{x}-g^{*},0),
+\]
+where $g^{*}$ is the best solution encountered thus far.
+This is a random variable, so for one sample $\omega$
+\[
+    I(x)(\omega) = \max(G_{x}(\omega)-g^{*},0).
+\]
+We denote by $\Phi$ the \textsc{cdf} of the standard normal distribution.
+Then the probability of improvement is
+\begin{align*}
+    \Prob(I(x) > 0) &= \Prob(G_{x} > g^{*})\\
+    &= 1- \Prob(G_{x}\leq g^{*})\\
+    &= 1-  \Phi\left(\frac{g^{*}-\mu(x)}{\sigma(x)}\right)\\
+    &=\Phi\left(\frac{\mu(x)-g^{*}}{\sigma(x)}\right)
+\end{align*}
+since $G_{x}$ is normally distributed.
+This gives us the probability of improvement acquisition function
+\[
+    \alpha_{\operatorname{PI}}(x) \coloneqq \Phi\left(\frac{\mu(x)-g^{*}}{\sigma(x)}\right).
+\]
+One drawback of this acquisition function is, that it does not account for the size of the improvement.
+This leads to the expected improvement\index{Bayesian Optimization!expected improvement}, shown in \cref{fig:bayes_opt_ei},
+\[
+    \alpha_{\operatorname{EI}} \coloneqq \E[I] = \E[\max(G_{x}-g^{*},0)].
+\]
+To bring this into an explicit form, recall that for non-negative random variables $X$ we have
+\[
+    \E[X] = \int_{0}^{\infty} \Prob(X > t) \dx[t].
+\]
+Hence
+\begin{align*}
+    \E[I] &= \int_{0}^{\infty} \Prob(I > t) \dx[t]\\
+    &= \int_{0}^{\infty} \Prob(G_{x}> g^{*}+t) \dx[t]\\
+    &= \int_{0}^{\infty} \Phi \left( \frac{\mu(x)-g^{*}-t}{\sigma(x)} \right) \dx[t].
+\end{align*}
+To solve this integral, we substitute
+\(
+    z(t) = \frac{\mu(x)-g^{*}-t}{\sigma(x)}
+\)
+with \( z'(t)= -\frac{1}{\sigma(x)} \). Then
+\[
+    \E[I] = -\sigma \int_{-\infty}^{0} \Phi(z) dz.
+\]
+Integrating by parts yields
+\[
+    \E[I] = \sigma z \Phi(z(t)) + \varphi(z(t)) \bigg|_{-\infty}^{0}
+\],
+where $\varphi$ is the \textsc{pdf} of the standard normal distribution.
+Plugging in $\varphi$ and $\Phi$ and taking care of the limit, we arrive at the explicit form of the expected improvement
+\[
+    \E[I] = (\mu(x)-g^{*}) \Phi(\frac{\mu(x)-g^{*}}{\sigma(x)}) + \sigma \varphi(\frac{\mu(x)-g^{*}}{\sigma(x)}).
+\]
+The expected improvement has monotonicity properties~\cite{jones1998efficient}
+\[
+    \frac{\partial \operatorname{EI}}{\partial u} = - \Phi(u) \left(\frac{f_{n}^{*}-u}{\sigma_{n}}\right) < 0
+\]
+and
+\[
+    \frac{\partial \operatorname{EI}}{\partial \sigma_{n}} = \varphi(u) \left( \frac{f_{n}^{*}-u}{\sigma_{n}} \right) > 0.
+\]
+This means, that the $\operatorname{EI}$ function is monotonely increasing in Kriging uncertainty and monotonely decreasing in Kriging prediction. 
+We can nicely see, that the expected improvement is quantifying the trade-off between exploration and exploitation.
+Some convergence rates for expected improvement are established in~\cite{bull2011convergence}.
+One more acquisition function, shown in \cref{fig:bayes_opt_ucb}, is the Upper Confidence Bound method~\cite{auer2002using}\index{Bayesian Optimization!upper confidence bound}.
+It is given by
+\[
+    \alpha_{\operatorname{UCB}}(x,D) = -\mu_{n}(x) + \beta_{n}\sigma_{n}(x)
+\]
+with a parameter $\beta_{n}$ that controls the confidence level, $\mu_{n}$ the mean and $\sigma_{n}$ the standard deviation of the surrogate model.
+
+
+
+
+
+
+\begin{figure}[t]
+    \centering
+    \input{figures/bayes_opt_ucb.pgf}
+    \caption{Bayesian Optimization with Upper Confidence Bounds.}
+    \label{fig:bayes_opt_ucb}
+\end{figure}
+
+
+
+
+
+Having talked about the possible acquisition functions, let us briefly look at the practical considerations of picking the surrogoate model.
+Namely picking the kernel and its hyperparameters.
+This can be done in multiple ways.
+Take the Matérn kernel as an example. It has three hyperparameters\index{Bayesian Optimization!hyperparameters}, the amplitude $\alpha$, the length scale $\nu$ and the smoothness $\mu$, which we will denote by
+\[
+    \eta = (\alpha, \nu, \mu).
+\]  
+The first approach is to use maximum likelihood estimation (MLE) to find the hyperparameters that maximize the likelihood of the data. 
+\[
+    \hat{\eta} = \argmax_{\eta} \Prob(X_{x_{1}, \dots, x_{n}} \mid \eta)
+\]
+The second is to use a Bayesian approach and compute the posterior distribution (MAP) of the hyperparameters. 
+\begin{align*}
+    \hat{\eta} &= \argmax_{\eta} \Prob(\eta \mid X_{x_{1}, \dots, x_{n}}) \\
+    &= \argmax_{\eta} \frac{\Prob(X_{x_{1}, \dots, x_{n}} \mid \eta) \Prob(\eta) }{\int P(X_{x_{1}, \dots, x_{n}} \mid \eta') \Prob(\eta') \dx} \\
+    &= \argmax_{\eta} \Prob(X_{x_{1}, \dots, x_{n}} \mid \eta) \Prob(\eta)
+\end{align*}
+The prior distribution can be picked uniformly or with expert knowledge in mind, depending on the application.
+Alternatively, one can marginalize over the hyperparameters for a fully Bayesian approach, but this is often intractable. This leads to the use of Markov Chain Monte Carlo (MCMC) methods to approximate the posterior distribution.
+
+
+
+
