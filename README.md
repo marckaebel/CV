@@ -1,9 +1,9 @@
-I am currently looking for a new job, where I can learn many exciting new things. If you think I might be a good fit for your team please reach out!
-My email adress is kaebel96@gmail.com
+I am currently looking for a new job, where I can learn exciting new things. If you think I might be a good fit for your team please reach out!
+My email is kaebel96@gmail.com.
 
 
 # Curriculum vitae
-
+[This](Bachelorarbeit/main.pdf)
 This PDF contains an up to date CV. Here you can find a job reference from my two years working at Landesbank Berlin.
 ![image](https://github.com/marckaebel/CV/assets/17997282/ddd066dd-7677-46e2-abe5-1735ca8e1e33)
 
