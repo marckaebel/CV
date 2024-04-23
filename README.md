@@ -14,7 +14,8 @@ The easiest way to reach me is at kaebel96@gmail.com.
 # Bachelor Thesis
 I recently completed my bachelor's degree in Mathematics.
 For my thesis I explored a way to augment Bayesian optimization, which is an algorithm designed to optimize over Gaussian random fields.
-You can find the full PDF version [here](Bachelorarbeit/main.pdf), as well as the LaTeX source code [in this folder](Bachelorarbeit/). Below are some screenshots of graphics explaining Bayesian optimization and Gaussian Process Regression.
+
+You can find [the full PDF version here](Bachelorarbeit/main.pdf), as well as the LaTeX source code [in this folder](Bachelorarbeit/). Below are some screenshots of graphics explaining Bayesian optimization and Gaussian Process Regression.
 
 ![Bayesian_optimization_example](https://github.com/marckaebel/CV/assets/17997282/e4ebee7c-06d4-47bf-a43c-84433357a6fa)
 ![Gaussian_process_example](https://github.com/marckaebel/CV/assets/17997282/95197d37-c168-4d7c-9191-c1e5186c3698)
