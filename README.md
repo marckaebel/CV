@@ -12,7 +12,7 @@ The easiest way to reach me is by email at kaebel96@gmail.com.
 ![image](https://github.com/marckaebel/CV/assets/17997282/ddd066dd-7677-46e2-abe5-1735ca8e1e33)
 
 # Bachelor Thesis
-I recently completed my bachelor's degree in Mathematics.
+I recently completed my bachelor's degree in mathematics.
 For my thesis I explored a way to augment Bayesian optimization, which is an algorithm designed to optimize over Gaussian random fields.
 
 You can find [the full PDF version here](Bachelorarbeit/main.pdf), as well as the LaTeX source code [in this folder](Bachelorarbeit/). Below are some screenshots of graphics explaining Bayesian optimization and Gaussian Process Regression.
